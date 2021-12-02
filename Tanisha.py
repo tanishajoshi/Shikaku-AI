@@ -78,10 +78,11 @@ class joshit(ShikakuSolver):
     
     ordered = self.moveOrder(state)
     maxRegionSize = max(ordered.keys()) #return largest region size (key)
-    print("ordered = ", ordered)
+    
     regionIds = list(ordered[maxRegionSize]) 
     if regionIds: regionId = regionIds.pop()
     regionOptions = state.options.pop(regionId)
+    #print("region options", regionOptions)
     self._numExpansions += 1
     
     for rectangle in regionOptions:
@@ -89,21 +90,25 @@ class joshit(ShikakuSolver):
       # that have already been made.  It is consistent if every
       # square has either the region id or -1 in it.
       consistent = numpy.all(numpy.logical_or(state.board == -1, state.board==regionId)[rectangle[0]:rectangle[0]+rectangle[2], rectangle[1]:rectangle[1]+rectangle[3]])
-      #numpy.all() tests whether all arr elems evaluate to True.
-      if consistent:
-        newState = copy.deepcopy(state)
+      
+      #pruning overlapping stuff idk
+      overlap = numpy.any(numpy.logical_and(state.board >-1, state.board != regionId)[rectangle[0]:rectangle[0]+rectangle[2], rectangle[1]:rectangle[1]+rectangle[3]])
+      
+      if (not overlap):
+        if consistent:
+          newState = copy.deepcopy(state)
         
-        for row in range(rectangle[0], rectangle[0]+rectangle[2]):
-          for col in range(rectangle[1], rectangle[1]+rectangle[3]):
-            newState.board[row,col] = regionId
+          for row in range(rectangle[0], rectangle[0]+rectangle[2]):
+            for col in range(rectangle[1], rectangle[1]+rectangle[3]):
+              newState.board[row,col] = regionId
             
-        if self._visualizer:
-          self._visualizer.draw(newState.board)
+          if self._visualizer:
+            self._visualizer.draw(newState.board)
         
-        solution = self.backtrack(newState)
-        if solution is not None:
-          return solution
-        self._backTracks += 1
+          solution = self.backtrack(newState)
+          if solution is not None:
+            return solution
+          self._backTracks += 1
           
-    return None           
+      return None           
     
