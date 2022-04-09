@@ -1,5 +1,5 @@
 # Shikaku-AI
-## Features 
+## Solution Features 
 * Move ordering
 * Best move
 * Pruning
